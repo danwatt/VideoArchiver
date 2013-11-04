@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -47,5 +48,9 @@ public class Archive {
 
 	public boolean isArchived(String sha1sum) {
 		return files.containsKey(sha1sum);
+	}
+	
+	public Set<String> getChecksums() {
+		return this.files.keySet();
 	}
 }

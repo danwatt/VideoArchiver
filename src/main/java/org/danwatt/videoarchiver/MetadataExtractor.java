@@ -31,8 +31,8 @@ public class MetadataExtractor {
 
 	public MediaSourceFile extractMetadata(File file) throws IOException {
 		MediaSourceFile metadata = new MediaSourceFile();
-		metadata.setOriginalChecksum(hashFile(file));
-		metadata.setOriginalName(file.getName());
+		metadata.setChecksum(hashFile(file));
+		metadata.setPath(file.getAbsolutePath());
 		String cl = "/usr/local/bin/exiftool " + file.getAbsolutePath();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		if (0 == executeAndCapture(cl, baos)) {
@@ -57,7 +57,6 @@ public class MetadataExtractor {
 		metadata.setAudioRate(Integer.parseInt(meta.get(EXIF_AUDIO_SAMPLE_RATE)));
 		metadata.setImageDimensions(meta.get(EXIF_IMAGE_SIZE));
 		metadata.setModel(meta.get(EXIF_MODEL));
-		metadata.setOriginalSize(FileUtils.sizeOf(f));
 		metadata.setMake(meta.get(EXIF_MAKE));
 		metadata.setCaptureDate(DateTime.parse(StringUtils.replace(meta.get(EXIF_CREATE_DATE),":","-",2).replace(" ", "T")));
 	}
