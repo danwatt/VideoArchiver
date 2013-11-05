@@ -8,5 +8,9 @@ import lombok.Data;
 @Data
 public class ArchiverConfiguration {
 	private String namingConvention;
-	private Map<String,Setting> settings = new LinkedHashMap<String, Setting>();
+	private Map<String, Setting> settings = new LinkedHashMap<String, Setting>();
+
+	public Setting getSetting(String string) {
+		return settings.get(string);
+	}
 }

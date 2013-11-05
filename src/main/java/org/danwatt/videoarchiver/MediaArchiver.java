@@ -85,7 +85,8 @@ public class MediaArchiver {
 				String output = targetDirectory.getAbsolutePath()+File.separator + namePart+".m4v";
 				File outputFile = new File(output);
 				outputFile.delete();
-				CommandLine cl = EncoderCommandLineBuilder.buildCommandLine(file, output);
+				CommandLine cl = EncoderCommandLineBuilder.buildCommandLine(file, output,config);
+				System.out.println("Executing " + cl.toString());
 				DefaultExecutor executor = new DefaultExecutor();
 				executor.setStreamHandler(new PumpStreamHandler(System.out));
 				int result= executor.execute(cl);
