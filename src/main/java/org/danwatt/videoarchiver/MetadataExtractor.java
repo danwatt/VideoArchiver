@@ -21,7 +21,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 
-
 public class MetadataExtractor {
 	private static final String EXIF_CREATE_DATE = "Create Date";
 	private static final String EXIF_AUDIO_SAMPLE_RATE = "Audio Sample Rate";
@@ -49,16 +48,21 @@ public class MetadataExtractor {
 	}
 
 	private void parseResults(File f, MediaSourceFile metadata, byte[] exifToolOutpt) throws IOException {
-		Map<String,String> meta = new HashMap<String, String>();
-		List<String> lines = IOUtils.readLines(new ByteArrayInputStream(exifToolOutpt));
-		for (String line : lines) {
-			meta.put(StringUtils.substringBefore(line, ":").trim(), StringUtils.substringAfter(line, ":").trim());
+		try {
+			Map<String, String> meta = new HashMap<String, String>();
+			List<String> lines = IOUtils.readLines(new ByteArrayInputStream(exifToolOutpt));
+			for (String line : lines) {
+				meta.put(StringUtils.substringBefore(line, ":").trim(), StringUtils.substringAfter(line, ":").trim());
+			}
+			metadata.setAudioRate(Integer.parseInt(meta.get(EXIF_AUDIO_SAMPLE_RATE)));
+			metadata.setImageDimensions(meta.get(EXIF_IMAGE_SIZE));
+			metadata.setModel(meta.get(EXIF_MODEL));
+			metadata.setMake(meta.get(EXIF_MAKE));
+			metadata.setCaptureDate(DateTime.parse(StringUtils.replace(meta.get(EXIF_CREATE_DATE), ":", "-", 2).replace(" ", "T")));
+		} catch (Exception e) {
+			System.out.println("Problem with " + f.getAbsolutePath());
+			e.printStackTrace();
 		}
-		metadata.setAudioRate(Integer.parseInt(meta.get(EXIF_AUDIO_SAMPLE_RATE)));
-		metadata.setImageDimensions(meta.get(EXIF_IMAGE_SIZE));
-		metadata.setModel(meta.get(EXIF_MODEL));
-		metadata.setMake(meta.get(EXIF_MAKE));
-		metadata.setCaptureDate(DateTime.parse(StringUtils.replace(meta.get(EXIF_CREATE_DATE),":","-",2).replace(" ", "T")));
 	}
 
 	public static String hashFile(File file) throws IOException {

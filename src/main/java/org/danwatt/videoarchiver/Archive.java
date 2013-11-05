@@ -21,15 +21,18 @@ public class Archive {
 	}
 
 	public void load() throws IOException {
-		List<String> lines = FileUtils.readLines(archiveFileName(archiveDirectory));
-		for (String line : lines) {
-			String[] parts = StringUtils.split(line, "|");
-			ArchivedFileMetadata af = new ArchivedFileMetadata();
-			af.setSha1sum(parts[0]);
-			af.setArchivedAt(DateTime.parse(parts[1]));
-			af.setOriginalName(parts[2]);
-			af.setArchivedRelativePath(parts[3]);
-			files.put(af.getSha1sum(), af);
+		File archiveFile = archiveFileName(archiveDirectory);
+		if (archiveFile.exists()) {
+			List<String> lines = FileUtils.readLines(archiveFile);
+			for (String line : lines) {
+				String[] parts = StringUtils.split(line, "|");
+				ArchivedFileMetadata af = new ArchivedFileMetadata();
+				af.setSha1sum(parts[0]);
+				af.setArchivedAt(DateTime.parse(parts[1]));
+				af.setOriginalName(parts[2]);
+				af.setArchivedRelativePath(parts[3]);
+				files.put(af.getSha1sum(), af);
+			}
 		}
 
 	}
@@ -39,9 +42,10 @@ public class Archive {
 	}
 
 	public void save(File archiveDirectory) throws IOException {
+		archiveDirectory.mkdirs();
 		List<String> lines = new ArrayList<String>();
 		for (ArchivedFileMetadata f : files.values()) {
-			lines.add(f.getSha1sum() + "|" + f.getArchivedAt().toString() + "|" + f.getOriginalName()+"|"+f.getArchivedRelativePath());
+			lines.add(f.getSha1sum() + "|" + f.getArchivedAt().toString() + "|" + f.getOriginalName() + "|" + f.getArchivedRelativePath());
 		}
 		FileUtils.writeLines(archiveFileName(archiveDirectory), lines);
 	}
@@ -49,7 +53,7 @@ public class Archive {
 	public boolean isArchived(String sha1sum) {
 		return files.containsKey(sha1sum);
 	}
-	
+
 	public Set<String> getChecksums() {
 		return this.files.keySet();
 	}
