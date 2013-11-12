@@ -8,7 +8,7 @@ import org.danwatt.videoarchiver.config.Setting;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class EncoderCommandLineBuilder {
+public class FfMpegCommandLineBuilder {
 
 	public static CommandLine buildCommandLine(MediaSourceFile file, String output, ArchiverConfiguration config) {
 		Setting defaultSetting = config.getSetting("default");

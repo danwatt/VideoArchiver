@@ -2,8 +2,6 @@ package org.danwatt.videoarchiver;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -11,12 +9,7 @@ import java.util.Set;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOCase;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.danwatt.videoarchiver.config.ArchiverConfiguration;
 import org.danwatt.videoarchiver.config.Setting;
@@ -28,7 +21,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 public class MediaArchiver {
-	static final SuffixFileFilter MOVIE_FILE_FILTER = new SuffixFileFilter(Arrays.asList(".MOV", ".AVI", ".M4V"), IOCase.INSENSITIVE);
 	static final ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true).configure(
 			SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 	static {
@@ -53,7 +45,7 @@ public class MediaArchiver {
 		archive.load();
 		System.out.println("The archive currently has " + archive.getChecksums().size() + " archived files");
 		
-		MediaSource source = gatherSourceFiles(sourcePath);
+		MediaSource source = new SourceScanner().gatherSourceFiles(config,sourcePath);
 		System.out.println("Source has " + source.getChecksums().size() + " files");
 		Set<String> checksumsToProcess = new LinkedHashSet<String>();
 		checksumsToProcess.addAll(source.getChecksums());
@@ -85,7 +77,7 @@ public class MediaArchiver {
 				String output = targetDirectory.getAbsolutePath()+File.separator + namePart+".m4v";
 				File outputFile = new File(output);
 				outputFile.delete();
-				CommandLine cl = EncoderCommandLineBuilder.buildCommandLine(file, output,config);
+				CommandLine cl = FfMpegCommandLineBuilder.buildCommandLine(file, output,config);
 				System.out.println("Executing " + cl.toString());
 				DefaultExecutor executor = new DefaultExecutor();
 				executor.setStreamHandler(new PumpStreamHandler(System.out));
@@ -97,15 +89,5 @@ public class MediaArchiver {
 			}
 		}
 		
-	}
-
-	private static MediaSource gatherSourceFiles(String sourcePath) throws IOException {
-		Collection<File> files = FileUtils.listFiles(new File(sourcePath), MOVIE_FILE_FILTER, FileFilterUtils.trueFileFilter());
-		MediaSource source = new MediaSource();
-		for (File f : files) {
-			MediaSourceFile vf = new MetadataExtractor().extractMetadata(f);
-			source.addFile(vf);
-		}
-		return source;
 	}
 }

@@ -16,9 +16,9 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.danwatt.videoarchiver.config.ArchiverConfiguration;
 import org.joda.time.DateTime;
 
 public class MetadataExtractor {
@@ -27,12 +27,17 @@ public class MetadataExtractor {
 	private static final String EXIF_IMAGE_SIZE = "Image Size";
 	private static final String EXIF_MODEL = "Model";
 	private static final String EXIF_MAKE = "Make";
+	private ArchiverConfiguration config;
+
+	public MetadataExtractor(ArchiverConfiguration config) {
+		this.config = config;
+	}
 
 	public MediaSourceFile extractMetadata(File file) throws IOException {
 		MediaSourceFile metadata = new MediaSourceFile();
 		metadata.setChecksum(hashFile(file));
 		metadata.setPath(file.getAbsolutePath());
-		String cl = "/usr/local/bin/exiftool " + file.getAbsolutePath();
+		String cl = config.getExifToolPath() + " " + file.getAbsolutePath();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		if (0 == executeAndCapture(cl, baos)) {
 			parseResults(file, metadata, baos.toByteArray());
