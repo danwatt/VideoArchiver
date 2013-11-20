@@ -19,8 +19,6 @@ public class HashTest {
 		int c = 0;
 		for (File f : files) {
 			String hash = FileHasher.quickHash(f, QUICK_HASH_SIZE);
-
-			System.out.println(hash);
 			if ((++c) % 100 == 0) {
 				System.out.println("Done with " + c);
 			}
