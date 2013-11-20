@@ -1,17 +1,13 @@
 package org.danwatt.videoarchiver;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
@@ -35,7 +31,7 @@ public class MetadataExtractor {
 
 	public MediaSourceFile extractMetadata(File file) throws IOException {
 		MediaSourceFile metadata = new MediaSourceFile();
-		metadata.setChecksum(hashFile(file));
+		metadata.setChecksum(org.danwatt.videoarchiver.FileHasher.hashFile(file));
 		metadata.setPath(file.getAbsolutePath());
 		String cl = config.getExifToolPath() + " " + file.getAbsolutePath();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -68,12 +64,5 @@ public class MetadataExtractor {
 			System.out.println("Problem with " + f.getAbsolutePath());
 			e.printStackTrace();
 		}
-	}
-
-	public static String hashFile(File file) throws IOException {
-		InputStream s = new BufferedInputStream(new FileInputStream(file));
-		String sha1 = DigestUtils.sha1Hex(s);
-		s.close();
-		return sha1;
 	}
 }
