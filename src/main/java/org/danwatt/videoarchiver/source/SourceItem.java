@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 public class SourceItem {
 	private String quickHash;
 	private String hash;
+	private long length;
 	private String relativePath;
 	private String cachedExifTool;
 }
