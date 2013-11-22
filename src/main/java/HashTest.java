@@ -16,18 +16,10 @@ public class HashTest {
 
 	public static void main(String[] args) throws Exception {
 		File source = new File(args[0]);
-		SourceScanner ss = new SourceScanner();
-		SourceDb scanned = ss.scan(source, Arrays.asList("jpg", "nef", "cr2", "dng", "m4v", "avi", "mov"));
 		SourceIO io = new SourceIO(source);
+		SourceScanner ss = new SourceScanner();
+		SourceDb scanned = ss.quickScan(source, Arrays.asList("jpg", "nef", "cr2", "dng", "m4v", "avi", "mov"));
+		ss.fillInMissingData(source, scanned);
 		io.save(scanned);
-//		Collection<File> files = FileUtils.listFiles(source, extensionFileFilter, FileFilterUtils.trueFileFilter());
-//		System.out.println("Found " + files.size() + " files");
-//		int c = 0;
-//		for (File f : files) {
-//			String hash = FileHasher.quickHash(f, QUICK_HASH_SIZE);
-//			if ((++c) % 100 == 0) {
-//				System.out.println("Done with " + c);
-//			}
-//		}
 	}
 }

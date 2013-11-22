@@ -24,7 +24,7 @@ public class SourceScannerTest {
 	public void emptyDirectory() throws Exception {
 		assertEquals(0, folder.getRoot().listFiles().length);
 
-		SourceDb source = scanner.scan(folder.getRoot(), Sets.newHashSet("jpg"));
+		SourceDb source = scanner.quickScan(folder.getRoot(), Sets.newHashSet("jpg"));
 
 		assertEquals(0, source.getItems().size());
 	}
@@ -36,7 +36,7 @@ public class SourceScannerTest {
 		File f = folder.newFile("sample.jpg");
 		FileUtils.copyFile(new File(SourceScannerTest.class.getClassLoader().getResource("sample.jpg").toURI()), f);
 
-		SourceDb source = scanner.scan(folder.getRoot(), Sets.newHashSet("jpg"));
+		SourceDb source = scanner.quickScan(folder.getRoot(), Sets.newHashSet("jpg"));
 
 		assertEquals(1, source.getItems().size());
 		String hash = FileHasher.quickHash(f, SourceScanner.QUICK_HASH_SIZE);
@@ -53,7 +53,7 @@ public class SourceScannerTest {
 
 		FileUtils.copyFile(new File(SourceScannerTest.class.getClassLoader().getResource("sample.jpg").toURI()), f);
 
-		SourceDb source = scanner.scan(folder.getRoot(), Sets.newHashSet("jpg"));
+		SourceDb source = scanner.quickScan(folder.getRoot(), Sets.newHashSet("jpg"));
 		assertEquals("test/sample.jpg", source.getItems().get(FileHasher.quickHash(f, SourceScanner.QUICK_HASH_SIZE)).get(0).getRelativePath());
 	}
 
@@ -62,8 +62,23 @@ public class SourceScannerTest {
 		File f = folder.newFile("sample.txt");
 		FileUtils.write(f, "dummy");
 
-		SourceDb source = scanner.scan(folder.getRoot(), Sets.newHashSet("jpg"));
+		SourceDb source = scanner.quickScan(folder.getRoot(), Sets.newHashSet("jpg"));
 
 		assertEquals(0, source.getItems().size());
+	}
+
+	@Test
+	public void fillInMissing() throws Exception {
+		// Sample image from exif.org:
+		// http://www.exif.org/samples/fujifilm-mx1700.jpg
+		File f = folder.newFile("sample.jpg");
+		FileUtils.copyFile(new File(SourceScannerTest.class.getClassLoader().getResource("sample.jpg").toURI()), f);
+
+		SourceDb source = scanner.quickScan(folder.getRoot(), Sets.newHashSet("jpg"));
+		scanner.fillInMissingData(folder.getRoot(), source);
+		
+		String quickHash = FileHasher.quickHash(f, SourceScanner.QUICK_HASH_SIZE);
+		String fullHash = FileHasher.hashFile(f);
+		assertEquals(fullHash, source.getItems().get(quickHash).get(0).getHash());
 	}
 }

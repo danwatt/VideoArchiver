@@ -57,6 +57,13 @@
 			<version>2.6</version>
 		</dependency>
 		<dependency>
+			<groupId>com.thebuzzmedia</groupId>
+			<artifactId>exiftool-lib</artifactId>
+			<version>1.1</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-exec</artifactId>
 			<version>1.1</version>
@@ -69,4 +76,12 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>The Buzz Media Maven Repository</id>
+			<url>http://maven.thebuzzmedia.com</url>
+		</repository>
+
+	</repositories>
 </project>
