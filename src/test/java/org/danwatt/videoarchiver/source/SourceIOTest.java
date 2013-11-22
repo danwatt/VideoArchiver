@@ -29,7 +29,7 @@ public class SourceIOTest {
 		io.save(db);
 		File[] files = folder.getRoot().listFiles();
 		assertEquals(1, files.length);
-		assertEquals(32,files[0].length());
+		assertTrue(files[0].length() > 1);
 		assertEquals(SourceIO.MEDIA_ARCHIVER_DB, files[0].getName());
 	}
 	@Test

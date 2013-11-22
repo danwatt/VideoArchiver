@@ -4,12 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 
 public class SourceIO {
@@ -19,29 +21,29 @@ public class SourceIO {
 
 	public SourceIO(File sourceDirectory) {
 		dbFile = new File(sourceDirectory.getAbsolutePath() + File.separator + MEDIA_ARCHIVER_DB);
-		mapper = new ObjectMapper();
+		mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true).setSerializationInclusion(Include.NON_NULL);
 		mapper.registerModule(new GuavaModule());
 	}
 
 	public SourceDb load() throws IOException {
-		GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(dbFile));
+		InputStream is =new FileInputStream(dbFile);
 		SourceDb db;
 		try {
-			db = mapper.readValue(gzis, SourceDb.class);
+			db = mapper.readValue(is, SourceDb.class);
 		} finally {
-			IOUtils.closeQuietly(gzis);
+			IOUtils.closeQuietly(is);
 		}
 		return db;
 	}
 
 	public void save(SourceDb db) throws IOException {
-		GZIPOutputStream gzos = new GZIPOutputStream(new FileOutputStream(dbFile));
-		
+		OutputStream os = new FileOutputStream(dbFile);
+
 		try {
-			mapper.writeValue(gzos, db);
-			gzos.flush();
+			mapper.writeValue(os, db);
+			os.flush();
 		} finally {
-			IOUtils.closeQuietly(gzos);
+			IOUtils.closeQuietly(os);
 		}
 	}
 }
