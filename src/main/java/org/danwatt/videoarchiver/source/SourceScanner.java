@@ -44,14 +44,16 @@ public class SourceScanner {
 		for (Entry<String, SourceItem> e : db.getItems().entries()) {
 			SourceItem si = e.getValue();
 			File f = resolveFile(sourceRoot, si);
-			if (ensureHashPresent(si, f) || ensureExifPresent(si, f)) {
+			boolean hashUpdated = ensureHashPresent(si, f);
+			boolean exifUpdated = ensureExifPresent(si, f);
+			if (hashUpdated || exifUpdated) {
 				System.out.println("Updated " + f.getAbsolutePath());
 			}
 		}
 	}
 
 	private boolean ensureExifPresent(SourceItem si, File f) throws IOException {
-		if (null == si.getCachedExifTool()) {
+		if (null == si.getCachedExifTool() || si.getCachedExifTool().isEmpty()) {
 			Map<Tag, String> meta = exifTool.getImageMeta(f, Tag.values());
 			Map<String, String> converted = new TreeMap<String, String>();
 			for (Entry<Tag, String> e : meta.entrySet()) {
