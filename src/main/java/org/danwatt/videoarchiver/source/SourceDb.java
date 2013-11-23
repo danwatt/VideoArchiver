@@ -7,12 +7,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import lombok.Data;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOCase;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.lang.StringUtils;
+import org.danwatt.videoarchiver.FileHasher;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,14 +31,23 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.TreeMultimap;
+import com.thebuzzmedia.exiftool.ExifTool;
+import com.thebuzzmedia.exiftool.ExifTool.Tag;
 
 @Data
 public class SourceDb {
-	private ListMultimap<String, SourceItem> items = ArrayListMultimap.create();
-	private File sourcePath;
+	Logger logger = Logger.getLogger(SourceDb.class.getName());
 
 	public static final String MEDIA_ARCHIVER_DB = "mediaArchiver.db";
+	public static final long QUICK_HASH_SIZE = 1024 * 128;
+
+	protected ExifTool exifTool = new ExifTool();
 	private ObjectMapper mapper;
+
+	private ListMultimap<String, SourceItem> items = ArrayListMultimap.create(TreeMultimap.<String, SourceItem> create());
+	private transient Map<String, SourceItem> pathMapping = new HashMap<String, SourceItem>();
+	private File sourcePath;
 	private File dbFile;
 
 	public SourceDb(File sourceDirectory) {
@@ -41,15 +61,24 @@ public class SourceDb {
 		if (dbFile.exists()) {
 			InputStream is = new FileInputStream(dbFile);
 			try {
-				items = mapper.readValue(is, ListMultimap.class);
+				items.clear();
+				ListMultimap<String, SourceItem> loaded = mapper.readValue(is, mapper.getTypeFactory().constructMapLikeType(ArrayListMultimap.class, String.class, SourceItem.class));
+				items.putAll(loaded);
+				pathMapping.clear();
+				for (Entry<String, SourceItem> e : items.entries()) {
+					SourceItem v = e.getValue();
+					pathMapping.put(v.getRelativePath(), v);
+				}
 			} finally {
 				IOUtils.closeQuietly(is);
 			}
 		}
+		logger.info("Loaded existing source database with " + items.size() + " items indexed");
 	}
 
 	public void save() throws IOException {
-		OutputStream os = new FileOutputStream(dbFile);
+		File temp = File.createTempFile(MEDIA_ARCHIVER_DB, "tmp", sourcePath);
+		OutputStream os = new FileOutputStream(temp);
 
 		try {
 			mapper.writeValue(os, this.items);
@@ -57,35 +86,85 @@ public class SourceDb {
 		} finally {
 			IOUtils.closeQuietly(os);
 		}
+		dbFile.delete();
+		FileUtils.moveFile(temp, dbFile);
 	}
 
-	public void merge(SourceDb quickDb) {
-		for (Entry<String, SourceItem> e : quickDb.getItems().entries()) {
-			String quickHash = e.getKey();
-			SourceItem quickScannedItem = e.getValue();
-			ListMultimap<String, SourceItem> toAdd = ArrayListMultimap.create();
+	public void scan(Collection<String> extensions) throws IOException {
+		SuffixFileFilter extensionFileFilter = new SuffixFileFilter(new ArrayList<String>(extensions), IOCase.INSENSITIVE);
+		Collection<File> files = FileUtils.listFiles(this.sourcePath, extensionFileFilter, FileFilterUtils.trueFileFilter());
+		int updated = 0;
+		for (File f : files) {
+			String quickHash = FileHasher.quickHash(f, QUICK_HASH_SIZE);
+			SourceItem si = new SourceItem();
+			si.setLength(f.length());
+			si.setQuickHash(quickHash);
+			si.setRelativePath(relativePath(f));
+
+			SourceItem existing = pathMapping.get(si.getRelativePath());
+			if (null != existing && !(existing.getQuickHash().equals(si.getQuickHash()) && existing.getLength() == si.getLength())) {
+				pathMapping.remove(si.getRelativePath());
+				items.remove(existing.getQuickHash(), existing);
+			}
+
 			if (items.containsKey(quickHash)) {
-				// So, the incoming quickDb has paths, quick hashes, and sizes.
-				// If a corresponding quick hash exists, and the entry matches
-				// by filename and size, discard the incoming quick hash
-				List<SourceItem> existingFilesWithSameQuickHash = items.get(quickHash);
-				List<SourceItem> toRemove = new ArrayList<SourceItem>();
-				for (SourceItem existingFile : existingFilesWithSameQuickHash) {
-					if (existingFile.getRelativePath().equals(quickScannedItem.getRelativePath())) {
-						if (existingFile.getLength() != quickScannedItem.getLength()) {
-							toRemove.add(existingFile);
-							toAdd.put(quickHash, quickScannedItem);
+				List<SourceItem> possibleMatches = items.get(quickHash);
+				for (SourceItem possibleMatch : possibleMatches) {
+					if (possibleMatch.getRelativePath().equals(si.getRelativePath())) {
+						if (possibleMatch.getLength() == si.getLength()) {
+							si = null;
 						}
-					} else {
-						toAdd.put(quickHash, quickScannedItem);
 					}
 				}
-				existingFilesWithSameQuickHash.removeAll(toRemove);
-			} else {
-				toAdd.put(quickHash, quickScannedItem);
 			}
-			items.putAll(toAdd);
-		}
 
+			if (null != si) {
+				add(si);
+				boolean hashUpdated = ensureHashPresent(si, f);
+				boolean exifUpdated = ensureExifPresent(si, f);
+				if (hashUpdated || exifUpdated) {
+					logger.info("Updated " + f.getAbsolutePath());
+				}
+				updated++;
+				if (updated % 10 == 0) {
+					save();
+				}
+			}
+		}
+		save();
+	}
+
+	public String relativePath(File f) {
+		return this.sourcePath.toURI().relativize(f.toURI()).getPath();
+	}
+
+	private boolean ensureExifPresent(SourceItem si, File f) throws IOException {
+		if (null == si.getCachedExifTool() || si.getCachedExifTool().isEmpty()) {
+			Map<Tag, String> meta = exifTool.getImageMeta(f, Tag.values());
+			Map<String, String> converted = new TreeMap<String, String>();
+			for (Entry<Tag, String> e : meta.entrySet()) {
+				converted.put(e.getKey().name(), e.getValue());
+			}
+			si.setCachedExifTool(converted);
+			return true;
+		}
+		return false;
+	}
+
+	private boolean ensureHashPresent(SourceItem si, File f) throws IOException {
+		if (StringUtils.isBlank(si.getHash())) {
+			si.setHash(FileHasher.hashFile(f));
+			return true;
+		}
+		return false;
+	}
+
+	private File resolveFile(File sourceRoot, SourceItem si) {
+		return new File(sourceRoot.getAbsolutePath() + File.separator + si.getRelativePath());
+	}
+
+	public void add(SourceItem item) {
+		items.put(item.getQuickHash(), item);
+		pathMapping.put(item.getRelativePath(), item);
 	}
 }

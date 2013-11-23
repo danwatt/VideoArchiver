@@ -7,10 +7,14 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode
-public class SourceItem {
+public class SourceItem implements Comparable<SourceItem> {
 	private String quickHash;
 	private String hash;
 	private long length;
 	private String relativePath;
-	private Map<String,String> cachedExifTool;
+	private Map<String, String> cachedExifTool;
+
+	public int compareTo(SourceItem o) {
+		return relativePath.compareTo(o.relativePath);
+	}
 }

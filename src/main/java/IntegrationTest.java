@@ -1,23 +1,33 @@
 import java.io.File;
 import java.util.Arrays;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+import java.util.logging.StreamHandler;
 
 import org.danwatt.videoarchiver.source.SourceDb;
-import org.danwatt.videoarchiver.source.SourceScanner;
 
 public class IntegrationTest {
 	// private static final int QUICK_HASH_SIZE = 256 * 1024;
 
 	public static void main(String[] args) throws Exception {
+		setupLogging();
 		File source = new File(args[0]);
 		SourceDb existingdb = new SourceDb(source);
 		existingdb.load();
 		System.out.println("Loaded " + existingdb.getItems().size() + " files");
-		SourceScanner ss = new SourceScanner();
-		SourceDb quickScanned = ss.quickScan(source, Arrays.asList("jpg", "nef", "cr2", "dng", "m4v", "avi", "mov"));
-		System.out.println("Identified " + quickScanned.getItems().size() + " by quick scan");
-		existingdb.merge(quickScanned);
-		ss.fillInMissingData(source, existingdb);
+		existingdb.scan(Arrays.asList("jpg", "nef", "cr2", "dng", "m4v", "avi", "mov"));
 		System.out.println("Process complete");
 		existingdb.save();
+	}
+
+	public static void setupLogging() {
+		Logger globalLogger = Logger.getLogger(java.util.logging.Logger.GLOBAL_LOGGER_NAME);
+		StreamHandler sh = new StreamHandler(System.out, new SimpleFormatter());
+		globalLogger.setLevel(Level.INFO);
+        globalLogger.addHandler(sh);
 	}
 }
