@@ -159,10 +159,6 @@ public class SourceDb {
 		return false;
 	}
 
-	private File resolveFile(File sourceRoot, SourceItem si) {
-		return new File(sourceRoot.getAbsolutePath() + File.separator + si.getRelativePath());
-	}
-
 	public void add(SourceItem item) {
 		items.put(item.getQuickHash(), item);
 		pathMapping.put(item.getRelativePath(), item);
