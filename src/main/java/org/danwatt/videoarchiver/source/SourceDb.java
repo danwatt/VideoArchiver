@@ -22,8 +22,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
 @Data
-// TODO: Just move the IO into this class. I'm not building Enterprise Java at
-// home
 public class SourceDb {
 	private ListMultimap<String, SourceItem> items = ArrayListMultimap.create();
 	private File sourcePath;
