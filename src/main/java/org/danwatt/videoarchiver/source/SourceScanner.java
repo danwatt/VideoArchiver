@@ -26,7 +26,7 @@ public class SourceScanner {
 	}
 
 	public SourceDb quickScan(File sourceRoot, Collection<String> extensions) throws IOException {
-		SourceDb db = new SourceDb();
+		SourceDb db = new SourceDb(sourceRoot);
 		SuffixFileFilter extensionFileFilter = new SuffixFileFilter(new ArrayList<String>(extensions), IOCase.INSENSITIVE);
 		Collection<File> files = FileUtils.listFiles(sourceRoot, extensionFileFilter, FileFilterUtils.trueFileFilter());
 		for (File f : files) {

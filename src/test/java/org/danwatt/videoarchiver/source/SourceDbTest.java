@@ -2,10 +2,17 @@ package org.danwatt.videoarchiver.source;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class SourceDbTest {
+	
+	@Rule
+	public TemporaryFolder folder = new TemporaryFolder();
 
 	private SourceDb source;
 	private SourceDb merge;
@@ -14,10 +21,24 @@ public class SourceDbTest {
 
 	@Before
 	public void setup() {
-		source = new SourceDb();
-		merge = new SourceDb();
+		source = new SourceDb(folder.getRoot());
+		merge = new SourceDb(folder.getRoot());
 		item1 = new SourceItem();
 		item2 = new SourceItem();
+	}
+	
+	@Test
+	public void loadNonExistant() throws Exception {
+		source.load();
+		assertEquals(0,source.getItems().size());
+	}
+	@Test
+	public void saveSingleAndLoad() throws Exception {
+		source.getItems().put("test", item1);
+		source.save();
+		
+		merge.load();
+		assertEquals(1,merge.getItems().size());
 	}
 
 	@Test
