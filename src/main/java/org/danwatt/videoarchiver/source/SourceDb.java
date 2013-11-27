@@ -1,5 +1,7 @@
 package org.danwatt.videoarchiver.source;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -14,6 +16,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import lombok.Data;
 
@@ -33,16 +37,18 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.TreeMultimap;
 import com.thebuzzmedia.exiftool.ExifTool;
+import com.thebuzzmedia.exiftool.ExifTool.Feature;
+import com.thebuzzmedia.exiftool.ExifTool.Format;
 import com.thebuzzmedia.exiftool.ExifTool.Tag;
 
 @Data
 public class SourceDb {
 	Logger logger = Logger.getLogger(SourceDb.class.getName());
 
-	public static final String MEDIA_ARCHIVER_DB = "mediaArchiver.db";
+	public static final String MEDIA_ARCHIVER_DB = "mediaArchiver.db.gz";
 	public static final long QUICK_HASH_SIZE = 1024 * 128;
 
-	protected ExifTool exifTool = new ExifTool();
+	protected ExifTool exifTool;
 	private ObjectMapper mapper;
 
 	private ListMultimap<String, SourceItem> items = ArrayListMultimap.create(TreeMultimap.<String, SourceItem> create());
@@ -55,11 +61,12 @@ public class SourceDb {
 		dbFile = new File(sourceDirectory.getAbsolutePath() + File.separator + MEDIA_ARCHIVER_DB);
 		mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true).setSerializationInclusion(Include.NON_NULL);
 		mapper.registerModule(new GuavaModule());
+		exifTool = new ExifTool(Feature.STAY_OPEN);
 	}
 
 	public void load() throws IOException {
 		if (dbFile.exists()) {
-			InputStream is = new FileInputStream(dbFile);
+			InputStream is = new GZIPInputStream(new BufferedInputStream(new FileInputStream(dbFile)));
 			try {
 				items.clear();
 				ListMultimap<String, SourceItem> loaded = mapper.readValue(is, mapper.getTypeFactory().constructMapLikeType(ArrayListMultimap.class, String.class, SourceItem.class));
@@ -78,7 +85,7 @@ public class SourceDb {
 
 	public void save() throws IOException {
 		File temp = File.createTempFile(MEDIA_ARCHIVER_DB, "tmp", sourcePath);
-		OutputStream os = new FileOutputStream(temp);
+		OutputStream os = new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(temp)));
 
 		try {
 			mapper.writeValue(os, this.items);
@@ -94,7 +101,14 @@ public class SourceDb {
 		SuffixFileFilter extensionFileFilter = new SuffixFileFilter(new ArrayList<String>(extensions), IOCase.INSENSITIVE);
 		Collection<File> files = FileUtils.listFiles(this.sourcePath, extensionFileFilter, FileFilterUtils.trueFileFilter());
 		int updated = 0;
+		logger.info("Scanning " + files.size() +" files");
+		File previousDir = null;
 		for (File f : files) {
+			String parentPath = f.getParentFile().getAbsolutePath();
+			if (null == previousDir || !previousDir.getAbsolutePath().equals(parentPath)) {
+				logger.info("Scanning " + parentPath);
+				previousDir = f.getParentFile();
+			}
 			String quickHash = FileHasher.quickHash(f, QUICK_HASH_SIZE);
 			SourceItem si = new SourceItem();
 			si.setLength(f.length());
@@ -126,7 +140,7 @@ public class SourceDb {
 					logger.info("Updated " + f.getAbsolutePath());
 				}
 				updated++;
-				if (updated % 10 == 0) {
+				if (updated % 100 == 0) {//TODO: Configurable, or # of bytes processed
 					save();
 				}
 			}
@@ -140,7 +154,7 @@ public class SourceDb {
 
 	private boolean ensureExifPresent(SourceItem si, File f) throws IOException {
 		if (null == si.getCachedExifTool() || si.getCachedExifTool().isEmpty()) {
-			Map<Tag, String> meta = exifTool.getImageMeta(f, Tag.values());
+			Map<Tag, String> meta = exifTool.getImageMeta(f, Format.HUMAN_READABLE,Tag.values());
 			Map<String, String> converted = new TreeMap<String, String>();
 			for (Entry<Tag, String> e : meta.entrySet()) {
 				converted.put(e.getKey().name(), e.getValue());
