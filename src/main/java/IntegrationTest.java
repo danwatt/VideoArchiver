@@ -1,9 +1,6 @@
 import java.io.File;
 import java.util.Arrays;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
@@ -28,6 +25,6 @@ public class IntegrationTest {
 		Logger globalLogger = Logger.getLogger(java.util.logging.Logger.GLOBAL_LOGGER_NAME);
 		StreamHandler sh = new StreamHandler(System.out, new SimpleFormatter());
 		globalLogger.setLevel(Level.INFO);
-        globalLogger.addHandler(sh);
+		globalLogger.addHandler(sh);
 	}
 }

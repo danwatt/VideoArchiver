@@ -1,15 +1,11 @@
 import java.io.File;
-import java.util.Arrays;
-import java.util.logging.Handler;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.StreamHandler;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
+import org.danwatt.videoarchiver.encoder.CombinedEncoder;
 import org.danwatt.videoarchiver.source.ExifSummary;
 import org.danwatt.videoarchiver.source.SourceDb;
 
@@ -29,7 +25,7 @@ public class MediaArchiver {
 		if ("makeModel".equalsIgnoreCase(command)) {
 			new ExifSummary().outputMakeModelList(db);
 		} else if ("cacheSource".equalsIgnoreCase(command)) {
-			db.scan(Arrays.asList("NEF", "JPG", "TIF", "PNG", "CR2", "DNG", "BMP", "GIF", "MOV", "AVI", "M4V"));
+			db.scan(new CombinedEncoder().getSupportedExceptions());
 		}
 	}
 

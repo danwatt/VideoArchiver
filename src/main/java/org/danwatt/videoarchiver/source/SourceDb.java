@@ -101,7 +101,7 @@ public class SourceDb {
 		SuffixFileFilter extensionFileFilter = new SuffixFileFilter(new ArrayList<String>(extensions), IOCase.INSENSITIVE);
 		Collection<File> files = FileUtils.listFiles(this.sourcePath, extensionFileFilter, FileFilterUtils.trueFileFilter());
 		int updated = 0;
-		logger.info("Scanning " + files.size() +" files");
+		logger.info("Scanning " + files.size() + " files");
 		File previousDir = null;
 		for (File f : files) {
 			String parentPath = f.getParentFile().getAbsolutePath();
@@ -140,7 +140,8 @@ public class SourceDb {
 					logger.info("Updated " + f.getAbsolutePath());
 				}
 				updated++;
-				if (updated % 100 == 0) {//TODO: Configurable, or # of bytes processed
+				if (updated % 100 == 0) {// TODO: Configurable, or # of bytes
+											// processed
 					save();
 				}
 			}
@@ -154,7 +155,7 @@ public class SourceDb {
 
 	private boolean ensureExifPresent(SourceItem si, File f) throws IOException {
 		if (null == si.getCachedExifTool() || si.getCachedExifTool().isEmpty()) {
-			Map<Tag, String> meta = exifTool.getImageMeta(f, Format.HUMAN_READABLE,Tag.values());
+			Map<Tag, String> meta = exifTool.getImageMeta(f, Format.HUMAN_READABLE, Tag.values());
 			Map<String, String> converted = new TreeMap<String, String>();
 			for (Entry<Tag, String> e : meta.entrySet()) {
 				converted.put(e.getKey().name(), e.getValue());
