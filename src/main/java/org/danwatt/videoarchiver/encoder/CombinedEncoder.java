@@ -10,7 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.danwatt.videoarchiver.config.ArchiverConfiguration;
 import org.danwatt.videoarchiver.source.SourceItem;
 
-public class CombinedEncoder implements Encoder {
+public class CombinedEncoder extends Encoder {
 
 	private ImageEncoder imageEncoder = new ImageEncoder();
 	private VideoEncoder videoEncoder = new VideoEncoder();
@@ -25,24 +25,33 @@ public class CombinedEncoder implements Encoder {
 
 	private void addMapping(Encoder encoder) {
 		for (String e : encoder.getSupportedExceptions()) {
-			encoderMapping.put(e, encoder);
+			encoderMapping.put(e.toUpperCase(), encoder);
 		}
 	}
 
+	@Override
 	public Collection<String> getSupportedExceptions() {
 		return encoderMapping.keySet();
 	}
 
-	public CommandLine buildCommandLine(ArchiverConfiguration config, SourceItem sourceItem, File desitnationFile) {
-		return encoderMapping.get(determineExtension(sourceItem)).buildCommandLine(config, sourceItem, desitnationFile);
+	@Override
+	public CommandLine buildCommandLine(ArchiverConfiguration config, File sourceRoot, SourceItem sourceItem, File desitnationFile) {
+		return encoderMapping.get(determineExtension(sourceItem)).buildCommandLine(config, sourceRoot, sourceItem, desitnationFile);
 	}
 
 	public String determineExtension(SourceItem sourceItem) {
-		return StringUtils.substringAfterLast(sourceItem.getRelativePath(), ".");
+		return StringUtils.substringAfterLast(sourceItem.getRelativePath(), ".").toUpperCase();
 	}
 
+	@Override
 	public String getIdentifier() {
 		return "combined";
+	}
+
+	@Override
+	public boolean encode(ArchiverConfiguration config, File sourceRoot, SourceItem sourceItem, File destinationFile) {
+		String ext = determineExtension(sourceItem);
+		return encoderMapping.get(ext).encode(config, sourceRoot, sourceItem, destinationFile);
 	}
 
 }

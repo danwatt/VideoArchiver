@@ -112,7 +112,7 @@ public class SourceDb {
 			SourceItem si = new SourceItem();
 			si.setLength(f.length());
 			si.setQuickHash(quickHash);
-			si.setRelativePath(relativePath(f));
+			si.setRelativePath(org.danwatt.videoarchiver.util.FileUtils.relativePath(this.sourcePath, f));
 
 			SourceItem existing = pathMapping.get(si.getRelativePath());
 			if (null != existing && !(existing.getQuickHash().equals(si.getQuickHash()) && existing.getLength() == si.getLength())) {
@@ -146,10 +146,7 @@ public class SourceDb {
 			}
 		}
 		save();
-	}
-
-	public String relativePath(File f) {
-		return this.sourcePath.toURI().relativize(f.toURI()).getPath();
+		exifTool.close();
 	}
 
 	private boolean ensureExifPresent(SourceItem si, File f) throws IOException {

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
 
+import org.danwatt.videoarchiver.destination.DestinationDb;
 import org.danwatt.videoarchiver.source.SourceDb;
 
 public class IntegrationTest {
@@ -17,8 +18,12 @@ public class IntegrationTest {
 		existingdb.load();
 		System.out.println("Loaded " + existingdb.getItems().size() + " files");
 		existingdb.scan(Arrays.asList("jpg", "nef", "cr2", "dng", "m4v", "avi", "mov"));
-		System.out.println("Process complete");
+		System.out.println("Scanning complete");
 		existingdb.save();
+
+		DestinationDb dest = new DestinationDb(new File(args[1]));
+		dest.load();
+		dest.archive(existingdb);
 	}
 
 	public static void setupLogging() {

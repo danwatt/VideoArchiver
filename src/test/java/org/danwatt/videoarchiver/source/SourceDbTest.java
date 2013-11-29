@@ -108,7 +108,7 @@ public class SourceDbTest {
 		String quickHash = FileHasher.quickHash(f, SourceDb.QUICK_HASH_SIZE);
 		item1.setQuickHash(quickHash);
 		item1.setLength(f.length());
-		item1.setRelativePath(source.relativePath(f));
+		item1.setRelativePath(org.danwatt.videoarchiver.util.FileUtils.relativePath(folder.getRoot(), f));
 		item1.setHash("full");
 		source.getItems().put(quickHash, item1);
 
@@ -124,7 +124,7 @@ public class SourceDbTest {
 		String quickHash = FileHasher.quickHash(f, SourceDb.QUICK_HASH_SIZE);
 		item1.setQuickHash("hashIsAcutallyDifferent");
 		item1.setLength(f.length());
-		item1.setRelativePath(source.relativePath(f));
+		item1.setRelativePath(org.danwatt.videoarchiver.util.FileUtils.relativePath(folder.getRoot(), f));
 		item1.setHash("full");
 		source.add(item1);
 

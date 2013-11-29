@@ -9,16 +9,19 @@ import org.danwatt.videoarchiver.source.SourceItem;
 
 import com.google.common.collect.Sets;
 
-public class AudioEncoder implements Encoder {
+public class AudioEncoder extends Encoder {
 
+	@Override
 	public Collection<String> getSupportedExceptions() {
 		return Sets.newHashSet("mp3", "m4a", "wav");
 	}
 
-	public CommandLine buildCommandLine(ArchiverConfiguration config, SourceItem sourceItem, File desitnationFile) {
+	@Override
+	public CommandLine buildCommandLine(ArchiverConfiguration config, File sourceRoot, SourceItem sourceItem, File desitnationFile) {
 		return null;
 	}
 
+	@Override
 	public String getIdentifier() {
 		return "audio";
 	}

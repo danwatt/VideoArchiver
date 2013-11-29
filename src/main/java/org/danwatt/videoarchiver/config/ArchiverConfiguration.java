@@ -13,8 +13,6 @@ import org.danwatt.videoarchiver.encoder.VideoEncoder;
 
 @Data
 public class ArchiverConfiguration {
-	private String ffmpegPath = "";
-	private String exifToolPath = "";
 	private String namingConvention;
 	private Map<String, List<EncoderOption>> encoderOptions = new LinkedHashMap<String, List<EncoderOption>>();
 

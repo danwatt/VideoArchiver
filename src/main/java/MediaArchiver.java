@@ -5,6 +5,7 @@ import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
+import org.danwatt.videoarchiver.destination.DestinationDb;
 import org.danwatt.videoarchiver.encoder.CombinedEncoder;
 import org.danwatt.videoarchiver.source.ExifSummary;
 import org.danwatt.videoarchiver.source.SourceDb;
@@ -17,15 +18,18 @@ public class MediaArchiver {
 		CommandLineParser parser = new BasicParser();
 		Options options = new Options();
 		CommandLine cmd = parser.parse(options, args);
-		SourceDb db = new SourceDb(new File(cmd.getArgs()[1]));
-		db.load();
+		SourceDb source = new SourceDb(new File(cmd.getArgs()[1]));
+		source.load();
 		String command = cmd.getArgs()[0];
 		logger.info("Command: " + command);
 		System.out.println("here");
 		if ("makeModel".equalsIgnoreCase(command)) {
-			new ExifSummary().outputMakeModelList(db);
+			new ExifSummary().outputMakeModelList(source);
 		} else if ("cacheSource".equalsIgnoreCase(command)) {
-			db.scan(new CombinedEncoder().getSupportedExceptions());
+			source.scan(new CombinedEncoder().getSupportedExceptions());
+		} else if ("archive".equals(command)) {
+			DestinationDb dest = new DestinationDb(new File(cmd.getArgs()[2]));
+			dest.archive(source);
 		}
 	}
 
