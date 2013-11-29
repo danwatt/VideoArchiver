@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -141,7 +140,7 @@ public class SourceDb {
 				}
 				updated++;
 				if (updated % 100 == 0) {// TODO: Configurable, or # of bytes
-											// processed
+					// processed
 					save();
 				}
 			}
@@ -156,11 +155,7 @@ public class SourceDb {
 	private boolean ensureExifPresent(SourceItem si, File f) throws IOException {
 		if (null == si.getCachedExifTool() || si.getCachedExifTool().isEmpty()) {
 			Map<Tag, String> meta = exifTool.getImageMeta(f, Format.HUMAN_READABLE, Tag.values());
-			Map<String, String> converted = new TreeMap<String, String>();
-			for (Entry<Tag, String> e : meta.entrySet()) {
-				converted.put(e.getKey().name(), e.getValue());
-			}
-			si.setCachedExifTool(converted);
+			si.setCachedExifTool(meta);
 			return true;
 		}
 		return false;

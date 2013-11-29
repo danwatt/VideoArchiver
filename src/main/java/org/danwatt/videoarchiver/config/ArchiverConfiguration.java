@@ -1,20 +1,26 @@
 package org.danwatt.videoarchiver.config;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import lombok.Data;
 
+import org.danwatt.videoarchiver.encoder.AudioEncoder;
+import org.danwatt.videoarchiver.encoder.ImageEncoder;
+import org.danwatt.videoarchiver.encoder.VideoEncoder;
+
 @Data
 public class ArchiverConfiguration {
 	private String ffmpegPath = "";
 	private String exifToolPath = "";
 	private String namingConvention;
-	private List<String> includeExtensions;
-	private Map<String, Setting> settings = new LinkedHashMap<String, Setting>();
+	private Map<String, List<EncoderOption>> encoderOptions = new LinkedHashMap<String, List<EncoderOption>>();
 
-	public Setting getSetting(String string) {
-		return settings.get(string);
+	public ArchiverConfiguration() {
+		encoderOptions.put(new AudioEncoder().getIdentifier(), new ArrayList<EncoderOption>());
+		encoderOptions.put(new ImageEncoder().getIdentifier(), new ArrayList<EncoderOption>());
+		encoderOptions.put(new VideoEncoder().getIdentifier(), new ArrayList<EncoderOption>());
 	}
 }
