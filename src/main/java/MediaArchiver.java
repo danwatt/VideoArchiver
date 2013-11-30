@@ -22,7 +22,6 @@ public class MediaArchiver {
 		source.load();
 		String command = cmd.getArgs()[0];
 		logger.info("Command: " + command);
-		System.out.println("here");
 		if ("makeModel".equalsIgnoreCase(command)) {
 			new ExifSummary().outputMakeModelList(source);
 		} else if ("cacheSource".equalsIgnoreCase(command)) {

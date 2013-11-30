@@ -3,6 +3,7 @@ package org.danwatt.videoarchiver.encoder;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 import org.apache.commons.exec.CommandLine;
@@ -21,6 +22,10 @@ public class CombinedEncoder extends Encoder {
 		addMapping(imageEncoder);
 		addMapping(videoEncoder);
 		addMapping(audioEncoder);
+	}
+
+	public Collection<Encoder> getEncoders() {
+		return new LinkedHashSet<Encoder>(encoderMapping.values());
 	}
 
 	private void addMapping(Encoder encoder) {

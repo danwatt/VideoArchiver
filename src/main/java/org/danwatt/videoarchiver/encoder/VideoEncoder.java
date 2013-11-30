@@ -19,7 +19,7 @@ public class VideoEncoder extends Encoder {
 
 	@Override
 	public Collection<String> getSupportedExceptions() {
-		return Sets.newHashSet("m4v", "qt", "mov", "mpg", "avi");
+		return Sets.newHashSet("M4V", "QT", "MOV", "MPG", "AVI");
 	}
 
 	@Override

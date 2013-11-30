@@ -13,7 +13,7 @@ public class ImageEncoder extends Encoder {
 
 	@Override
 	public Collection<String> getSupportedExceptions() {
-		return Sets.newHashSet("jpg", "tif", "nef", "cr2", "dng");
+		return Sets.newHashSet("JPG", "TIF", "NEF", "CR2", "DNG");
 	}
 
 	@Override

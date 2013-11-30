@@ -93,7 +93,11 @@ public class DestinationDb {
 	}
 
 	protected File determineDestinationDirectory(SourceItem item) {
-		return new File(destinationRoot.getAbsolutePath() + File.separator + item.getRelativePath()).getParentFile();
+		System.out.println("Relative path: " + item.getRelativePath());
+		File dir = new File(destinationRoot.getAbsolutePath() + File.separator + item.getRelativePath());
+		File p = dir.getParentFile();
+		System.out.println("Parent: " + p.getAbsolutePath());
+		return p;
 	}
 
 	public boolean archive(File sourceRoot, SourceItem sourceItem) {
@@ -102,7 +106,10 @@ public class DestinationDb {
 			destDir.mkdirs();
 
 			// TODO: Possibility of collision
-			File destFile = new File(destDir.getAbsolutePath() + File.separator + StringUtils.substringBeforeLast(StringUtils.substringAfterLast(sourceItem.getRelativePath(), "/"), "."));
+			String filename = new File(sourceRoot.getAbsolutePath() + File.separator + sourceItem.getRelativePath()).getName();
+			System.out.println("Filename: " + filename);
+			String minusExtension = StringUtils.substringBeforeLast(filename, ".");
+			File destFile = new File(destDir.getAbsolutePath() + File.separator + minusExtension);
 			boolean encoded = encoder.encode(configuration, sourceRoot, sourceItem, destFile);
 			if (encoded) {
 				archivedFiles.put(sourceItem.getHash(), org.danwatt.videoarchiver.util.FileUtils.relativePath(sourceRoot, destFile));

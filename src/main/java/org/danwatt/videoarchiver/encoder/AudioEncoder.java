@@ -13,7 +13,7 @@ public class AudioEncoder extends Encoder {
 
 	@Override
 	public Collection<String> getSupportedExceptions() {
-		return Sets.newHashSet("mp3", "m4a", "wav");
+		return Sets.newHashSet("MP3", "M4A", "WAV");
 	}
 
 	@Override
